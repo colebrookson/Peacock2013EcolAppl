@@ -35,7 +35,7 @@ for(i in 1:length(Yr)){
 	Area[i]<-z$Area[z$River==River[i]][1]
 }
 
-z<-data.frame(Area, River=as.numeric(River), RiverName=River, Yr, Escapement)
+z<-data.frame(Area, River=as.numeric(as.factor(River)), RiverName=River, Yr, Escapement)
 
 cat("Total number of rivers in nuSEDS data: ", length(unique(z$River)))
 
@@ -153,7 +153,7 @@ for(j in 1950:2010){
 #-------------------------------------------------------------------------------
 # 1) Read in data
 #-------------------------------------------------------------------------------
-z<-read.csv("nuSEDS_PINK.csv")
+z<-read.csv("nuSEDs_PINK.csv")
 x<-zz
 
 #-------------------------------------------------------------------------------
@@ -161,7 +161,7 @@ x<-zz
 #-------------------------------------------------------------------------------
 
 # a) Enter a row of NA for each missing year
-L<-levels(z$River);
+L<-levels(as.factor(z$River));
 yr1<-c(); area1<-c(); river1<-c(); 
 
 for(i in 1:length(L)){
