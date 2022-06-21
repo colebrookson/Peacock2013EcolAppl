@@ -135,6 +135,7 @@ for(a in unique(zz$Area)){
 			}
 		}
 	}
+
 zz$Exploitation<-zz$Catch/(zz$AdjustedEsc+zz$Catch)
 
 #-------------------------------------------------------------------------------
@@ -198,7 +199,9 @@ Z$S[which(Z$Yr==1960 | Z$Yr==1961)]<-NA;
 
 # h) Calculate survival as log(R/S)
 Z$Survival<-log(Z$R/Z$S);
-
+x = Z$R/Z$S
+y = Z$R/Z$S[1:(length(Z$S)-2)]
+summary(x)
 #-------------------------------------------------------------------------------
 # 3) Remove ambiguous or confounding farm exposure, enhancement, etc
 #-------------------------------------------------------------------------------
@@ -239,7 +242,7 @@ ZZ$Popn<-factor(ZZ$Popn);
 # 4) Only keep populations with a minimum of 20 spawner-recruit pairs
 #-------------------------------------------------------------------------------
 
-Min.N<-20; Z.lengths<-c(); L<-unique(ZZ$Popn); 
+Min.N<-20; Z.lengths<-c(); L<-sort(unique(ZZ$Popn)); 
 for(i in 1:length(L)){
 	z1<-subset(ZZ,Popn==L[i]);	
 	z2<-which(is.na(z1$Survival)); 
@@ -254,13 +257,25 @@ for(i in 1:length(R.LongEnough)){
 	R.River<-c(R.River,z1$Popn[1])
 	}
 
+Z.lengths_long = Z.lengths[which(Z.lengths > 19)]
+
+ZZ_test = ZZ[which(ZZ$Popn %in% R.LongEnough),]
+Z1_test = subset(ZZ_test, is.na(ZZ_test$Survival)==FALSE)
+
 #Separate out even and odd year populations 
 ZZ$Population<-as.factor(paste(ZZ$River, ZZ$EO, sep=" "))
+Z1_test$Population = as.factor(paste(Z1_test$River, Z1_test$EO, sep = " "))
 
 #Only keep those entries with estimates of survival
 Z1<-subset(ZZ, is.na(ZZ$Survival)==FALSE)
 
-cat("Final dataset: \n Total number of populations (even/odd): ", length(unique(Z1$Population)), "\n Total number of S-R pairs: ", dim(Z1)[1], "\n Total number of rivers: ", length(unique(Z1$River)))
+cat("Final dataset: \n Total number of populations (even/odd): ", 
+    length(unique(Z1_test$Population)), "\n Total number of S-R pairs: ", 
+    dim(Z1_test)[1], "\n Total number of rivers: ", length(unique(Z1_test$River)))
+
+cat("Final dataset: \n Total number of populations (even/odd): ", 
+    length(unique(Z1$Population)), "\n Total number of S-R pairs: ", 
+    dim(Z1)[1], "\n Total number of rivers: ", length(unique(Z1$River)))
 
 ################################################################################
 ## C. Inclusion of louse covariate data
@@ -274,7 +289,13 @@ for(i in 1:dim(W)[1]){
 	Z1$WildLice[Z1$Area==12&Z1$Yr==W$return.year[i]]<-rep(W$mean[i], length(which(Z1$Area==12&Z1$Yr==W$return.year[i])))
 }
 
+Z1_test$WildLice<-rep(0,dim(Z1_test)[1])
+for(i in 1:dim(W)[1]){
+  Z1_test$WildLice[Z1_test$Area==12&Z1_test$Yr==W$return.year[i]]<-rep(W$mean[i], length(which(Z1_test$Area==12&Z1_test$Yr==W$return.year[i])))
+}
+
 ################################################################################
 ## D. Write final database to file
 ################################################################################
 write.csv(Z1, "StockRecruitData_PINK.csv")
+write.csv(Z1_test, "stock_recruit_cole.csv")

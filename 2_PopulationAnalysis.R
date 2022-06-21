@@ -21,6 +21,8 @@ rm(list=ls()) #Clear workspace
 
 # Spawner-recruit data (from 1_DataCompilation.R)
 Z<-read.csv("StockRecruitData_PINK.csv", header=TRUE)
+cole = read.csv("stock_recruit_cole.csv")
+
 if(names(Z)[1]=="X") Z<-Z[,2:dim(Z)[2]]
 
 Z$Yr.numeric<-Z$Yr
@@ -29,6 +31,12 @@ Z$Area<-as.factor(Z$Area)
 Z$S<-as.numeric(Z$S)
 Z$Popn<-as.factor(Z$Popn)
 
+cole$Yr.numeric<-cole$Yr
+cole$Yr<-as.factor(cole$Yr)
+cole$Area<-as.factor(cole$Area)
+cole$S<-as.numeric(cole$S)
+cole$Popn<-as.factor(cole$Popn)
+
 #-------------------------------------------------------------------------------
 # 2) Setting W -> NA for return years 1991-2001
 #-------------------------------------------------------------------------------
@@ -36,17 +44,27 @@ Z$WildLice2<-Z$WildLice
 Z$WildLice2[is.element(Z$Yr.numeric, c(1991:2001))&Z$Area==12]<-NA
 Z1<-subset(Z, is.na(WildLice2)==FALSE)
 
+cole$WildLice2<-cole$WildLice
+cole$WildLice2[is.element(cole$Yr.numeric, c(1991:2001))&cole$Area==12]<-NA
+cole1<-subset(cole, is.na(WildLice2)==FALSE)
+
 #-------------------------------------------------------------------------------
 # 3) Model fitting
 #-------------------------------------------------------------------------------
 #install.packages("lme4")
 require(lme4)
+library(glmmTMB)
 
 mod.null<-lmer(Survival~S:Population+(1|Yr/Area), data=Z1, REML=TRUE)
 mod.alt<-lmer(Survival~S:Population+WildLice+(1|Yr/Area), data=Z1, REML=TRUE)
 anova(mod.null, mod.alt)
 
 cat("Point estimates on parameters: \n r = ", fixef(mod.alt)[1], "\n c = ", fixef(mod.alt)[2])
+
+mod.null.cole = lmer(Survival~S:Population+(1|Yr/Area), data=cole, REML=TRUE)
+mod.alt.cole <-lmer(Survival~S:Population+WildLice+(1|Yr/Area), data=cole, REML=TRUE)
+anova(mod.null.cole, mod.alt.cole)
+
 
 #-------------------------------------------------------------------------------
 # 4) Bootstrap confidence intervals on parameter estimates
