@@ -20,8 +20,7 @@ rm(list=ls()) #Clear workspace
 #-------------------------------------------------------------------------------
 
 # Spawner-recruit data (from 1_DataCompilation.R)
-Z<-read.csv("StockRecruitData_PINK.csv", header=TRUE)
-cole = read.csv("stock_recruit_cole.csv")
+Z<-read.csv("from-original-code.csv", header=TRUE)
 
 if(names(Z)[1]=="X") Z<-Z[,2:dim(Z)[2]]
 
@@ -31,39 +30,108 @@ Z$Area<-as.factor(Z$Area)
 Z$S<-as.numeric(Z$S)
 Z$Popn<-as.factor(Z$Popn)
 
-cole$Yr.numeric<-cole$Yr
-cole$Yr<-as.factor(cole$Yr)
-cole$Area<-as.factor(cole$Area)
-cole$S<-as.numeric(cole$S)
-cole$Popn<-as.factor(cole$Popn)
-
-#-------------------------------------------------------------------------------
-# 2) Setting W -> NA for return years 1991-2001
-#-------------------------------------------------------------------------------
 Z$WildLice2<-Z$WildLice
 Z$WildLice2[is.element(Z$Yr.numeric, c(1991:2001))&Z$Area==12]<-NA
 Z1<-subset(Z, is.na(WildLice2)==FALSE)
 
-cole$WildLice2<-cole$WildLice
-cole$WildLice2[is.element(cole$Yr.numeric, c(1991:2001))&cole$Area==12]<-NA
-cole1<-subset(cole, is.na(WildLice2)==FALSE)
+
+cor_size_cor_lice = read.csv("cor_size_cor_lice.csv")
+cor_size_inc_lice = read.csv("cor_size_inc_lice.csv")
+inc_size_cor_lice = read.csv("inc_size_cor_lice.csv")
+inc_size_inc_lice = read.csv("inc_size_inc_lice.csv")
+
+cor_size_cor_lice$Yr.numeric<-cor_size_cor_lice$Yr
+cor_size_cor_lice$Yr<-as.factor(cor_size_cor_lice$Yr)
+cor_size_cor_lice$Area<-as.factor(cor_size_cor_lice$Area)
+cor_size_cor_lice$S<-as.numeric(cor_size_cor_lice$S)
+cor_size_cor_lice$Popn<-as.factor(cor_size_cor_lice$Popn)
+
+cor_size_inc_lice$Yr.numeric<-cor_size_inc_lice$Yr
+cor_size_inc_lice$Yr<-as.factor(cor_size_inc_lice$Yr)
+cor_size_inc_lice$Area<-as.factor(cor_size_inc_lice$Area)
+cor_size_inc_lice$S<-as.numeric(cor_size_inc_lice$S)
+cor_size_inc_lice$Popn<-as.factor(cor_size_inc_lice$Popn)
+
+inc_size_cor_lice$Yr.numeric<-inc_size_cor_lice$Yr
+inc_size_cor_lice$Yr<-as.factor(inc_size_cor_lice$Yr)
+inc_size_cor_lice$Area<-as.factor(inc_size_cor_lice$Area)
+inc_size_cor_lice$S<-as.numeric(inc_size_cor_lice$S)
+inc_size_cor_lice$Popn<-as.factor(inc_size_cor_lice$Popn)
+
+inc_size_inc_lice$Yr.numeric<-inc_size_inc_lice$Yr
+inc_size_inc_lice$Yr<-as.factor(inc_size_inc_lice$Yr)
+inc_size_inc_lice$Area<-as.factor(inc_size_inc_lice$Area)
+inc_size_inc_lice$S<-as.numeric(inc_size_inc_lice$S)
+inc_size_inc_lice$Popn<-as.factor(inc_size_inc_lice$Popn)
+
+#-------------------------------------------------------------------------------
+# 2) Setting W -> NA for return years 1991-2001
+#-------------------------------------------------------------------------------
+cor_size_cor_lice$WildLice2<-cor_size_cor_lice$WildLice
+cor_size_cor_lice$WildLice2[is.element(cor_size_cor_lice$Yr.numeric, c(1991:2001))&cor_size_cor_lice$Area==12]<-NA
+cor_size_cor_lice1<-subset(cor_size_cor_lice, is.na(WildLice2)==FALSE)
+
+cor_size_inc_lice$WildLice2<-cor_size_inc_lice$WildLice
+cor_size_inc_lice$WildLice2[is.element(cor_size_inc_lice$Yr.numeric, c(1991:2001))&cor_size_inc_lice$Area==12]<-NA
+cor_size_inc_lice1<-subset(cor_size_inc_lice, is.na(WildLice2)==FALSE)
+
+inc_size_cor_lice$WildLice2<-inc_size_cor_lice$WildLice
+inc_size_cor_lice$WildLice2[is.element(inc_size_cor_lice$Yr.numeric, c(1991:2001))&inc_size_cor_lice$Area==12]<-NA
+inc_size_cor_lice1<-subset(inc_size_cor_lice, is.na(WildLice2)==FALSE)
+
+inc_size_inc_lice$WildLice2<-inc_size_inc_lice$WildLice
+inc_size_inc_lice$WildLice2[is.element(inc_size_inc_lice$Yr.numeric, c(1991:2001))&inc_size_inc_lice$Area==12]<-NA
+inc_size_inc_lice1<-subset(inc_size_inc_lice, is.na(WildLice2)==FALSE)
 
 #-------------------------------------------------------------------------------
 # 3) Model fitting
 #-------------------------------------------------------------------------------
 #install.packages("lme4")
 require(lme4)
-library(glmmTMB)
 
 mod.null<-lmer(Survival~S:Population+(1|Yr/Area), data=Z1, REML=TRUE)
 mod.alt<-lmer(Survival~S:Population+WildLice+(1|Yr/Area), data=Z1, REML=TRUE)
+mod.alt2 = lmer(Survival ~ scale(S):Population + scale(WildLice) + (1|Yr/Area),
+                data = Z1, REML = TRUE)
+summary(mod.alt)
+summary(mod.null)
 anova(mod.null, mod.alt)
+summary(Z1$WildLice)
 
 cat("Point estimates on parameters: \n r = ", fixef(mod.alt)[1], "\n c = ", fixef(mod.alt)[2])
 
-mod.null.cole = lmer(Survival~S:Population+(1|Yr/Area), data=cole, REML=TRUE)
-mod.alt.cole <-lmer(Survival~S:Population+WildLice+(1|Yr/Area), data=cole, REML=TRUE)
-anova(mod.null.cole, mod.alt.cole)
+mod.null_cor_size_cor_lice<-lmer(Survival~S:Population+(1|Yr/Area), data=cor_size_cor_lice1, REML=TRUE)
+mod.alt_cor_size_cor_lice<-lmer(Survival~S:Population+WildLice+(1|Yr/Area), data=cor_size_cor_lice1, REML=TRUE)
+anova(mod.null_cor_size_cor_lice, mod.alt_cor_size_cor_lice)
+
+cat("Point estimates on parameters: \n r = ", 
+    fixef(mod.alt_cor_size_cor_lice)[1], "\n c = ", 
+    fixef(mod.alt_cor_size_cor_lice)[2])
+
+mod.null_cor_size_inc_lice<-lmer(Survival~S:Population+(1|Yr/Area), data=cor_size_inc_lice1, REML=TRUE)
+mod.alt_cor_size_inc_lice<-lmer(Survival~S:Population+WildLice+(1|Yr/Area), data=cor_size_inc_lice1, REML=TRUE)
+anova(mod.null_cor_size_inc_lice, mod.alt_cor_size_inc_lice)
+
+cat("Point estimates on parameters: \n r = ", 
+    fixef(mod.alt_cor_size_inc_lice)[1], "\n c = ", 
+    fixef(mod.alt_cor_size_inc_lice)[2])
+
+mod.null_inc_size_cor_lice<-lmer(Survival~S:Population+(1|Yr/Area), data=inc_size_cor_lice1, REML=TRUE)
+mod.alt_inc_size_cor_lice<-lmer(Survival~S:Population+WildLice+(1|Yr/Area), data=inc_size_cor_lice1, REML=TRUE)
+anova(mod.null_inc_size_cor_lice, mod.alt_inc_size_cor_lice)
+
+cat("Point estimates on parameters: \n r = ", 
+    fixef(mod.alt_inc_size_cor_lice)[1], "\n c = ", 
+    fixef(mod.alt_inc_size_cor_lice)[2])
+
+mod.null_inc_size_inc_lice<-lmer(Survival~S:Population+(1|Yr/Area), data=inc_size_inc_lice1, REML=TRUE)
+mod.alt_inc_size_inc_lice<-lmer(Survival~S:Population+WildLice+(1|Yr/Area), data=inc_size_inc_lice1, REML=TRUE)
+anova(mod.null_inc_size_inc_lice, mod.alt_inc_size_inc_lice)
+
+cat("Point estimates on parameters: \n r = ", 
+    fixef(mod.alt_inc_size_inc_lice)[1], "\n c = ", 
+    fixef(mod.alt_inc_size_inc_lice)[2])
+
 
 
 #-------------------------------------------------------------------------------
@@ -135,35 +203,35 @@ params<-list(a, b, c, sigma.ya, sigma.y, sigma.e)
 #	************************************************************ 
 #---------------------------------------------------
 
-# require(parallel)
-# detectCores() #Number of cores available
-# n.cores<-3
-# if(n.cores>detectCores()) cat("Attempting to parallelize on more cores than you have available!  Set n.cores < detectCores()")
+require(parallel)
+detectCores() #Number of cores available
+n.cores<-3
+if(n.cores>detectCores()) cat("Attempting to parallelize on more cores than you have available!  Set n.cores < detectCores()")
 
-# #Figure out random number sequences for different chains
-# n.jobs<-1000 # How many iterations to bootstrap
-# RNGkind("L'Ecuyer-CMRG")
-# set.seed(1234)
-# job.seeds<-matrix(nrow=n.jobs, ncol=7)
-# job.seeds[1,]<-.Random.seed
-# for(i in 2:n.jobs) job.seeds[i,]<-nextRNGStream(job.seeds[i-1,])
-	
-# t0<-proc.time()
-# cl<-makeCluster(n.cores)
-# clusterExport(cl, varlist=list("job.seeds", "Z1", "params"))
-# X<-clusterApply(cl, x=c(1:1000), fun=sim)
-# stopCluster(cl)
-# cat("Process time (minutes) = ", (proc.time()-t0)[3]/60)
-	
-# # Unlist results
-# p.all2<-matrix(nrow=1000, ncol=2)
-# for(i in 1:1000) p.all2[i,]<-as.numeric(X[[i]])
+# Figure out random number sequences for different chains
+n.jobs<-100 # How many iterations to bootstrap
+RNGkind("L'Ecuyer-CMRG")
+set.seed(1234)
+job.seeds<-matrix(nrow=n.jobs, ncol=7)
+job.seeds[1,]<-.Random.seed
+for(i in 2:n.jobs) job.seeds[i,]<-nextRNGStream(job.seeds[i-1,])
 
-# CI<-apply(p.all2, 2, quantile, c(0.025, 0.975))
-# CI<-rbind(CI[1,], fixef(mod.alt)[1:2], CI[2,])
-# colnames(CI)<-c("r", "c")
-# rownames(CI)<-c("2.5%", "MLE", "97.5%")
-# print(CI)
+t0<-proc.time()
+cl<-makeCluster(n.cores)
+clusterExport(cl, varlist=list("job.seeds", "Z1", "params"))
+X<-clusterApply(cl, x=c(1:n.jobs), fun=sim)
+stopCluster(cl)
+cat("Process time (minutes) = ", (proc.time()-t0)[3]/60)
+
+# Unlist results
+p.all2<-matrix(nrow=n.jobs, ncol=2)
+for(i in 1:n.jobs) p.all2[i,]<-as.numeric(X[[i]])
+
+CI<-apply(p.all2, 2, quantile, c(0.025, 0.975))
+CI<-rbind(CI[1,], fixef(mod.alt)[1:2], CI[2,])
+colnames(CI)<-c("r", "c")
+rownames(CI)<-c("2.5%", "MLE", "97.5%")
+print(CI)
 
 #---------------------------------------------------
 # d) Computation of the percent mortality due to sea lice

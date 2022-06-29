@@ -282,16 +282,42 @@ cat("Final dataset: \n Total number of populations (even/odd): ",
 ################################################################################
 
 # Wild lice estimates
-W<-data.frame(return.year=c(2001:2010)+1, mean=c(12.1739692,6.228714679,0.692532577,6.226036908,2.657006199,0.906920939,0.869532124,0.390081339,0.202908529,0.627256331))
+W<-data.frame(return.year=c(2001:2010)+1, 
+              mean=c(12.1739692,6.228714679,0.692532577,6.226036908,
+                     2.657006199,0.906920939,0.869532124,0.390081339,
+                     0.202908529,0.627256331))
 
-Z1$WildLice<-rep(0,dim(Z1)[1])
+
+
+Wcole<-data.frame(return.year=c(2001:2010), mean=c(12.1739692,6.228714679,0.692532577,6.226036908,2.657006199,0.906920939,0.869532124,0.390081339,0.202908529,0.627256331))
+
+inc_size_inc_lice = Z1
+inc_size_cor_lice = Z1
+cor_size_inc_lice = Z1_test
+cor_size_cor_lice = Z1_test
+
+# do incorrect lice 
+inc_size_inc_lice$WildLice<-rep(0,dim(inc_size_inc_lice)[1])
 for(i in 1:dim(W)[1]){
-	Z1$WildLice[Z1$Area==12&Z1$Yr==W$return.year[i]]<-rep(W$mean[i], length(which(Z1$Area==12&Z1$Yr==W$return.year[i])))
+	inc_size_inc_lice$WildLice[inc_size_inc_lice$Area==12&inc_size_inc_lice$Yr==W$return.year[i]]<-
+	  rep(W$mean[i], length(which(inc_size_inc_lice$Area==12&inc_size_inc_lice$Yr==W$return.year[i])))
+}
+cor_size_inc_lice$WildLice<-rep(0,dim(cor_size_inc_lice)[1])
+for(i in 1:dim(W)[1]){
+  cor_size_inc_lice$WildLice[cor_size_inc_lice$Area==12&cor_size_inc_lice$Yr==W$return.year[i]]<-
+    rep(W$mean[i], length(which(cor_size_inc_lice$Area==12&cor_size_inc_lice$Yr==W$return.year[i])))
 }
 
-Z1_test$WildLice<-rep(0,dim(Z1_test)[1])
+# do correct lice
+cor_size_cor_lice$WildLice<-rep(0,dim(cor_size_cor_lice)[1])
 for(i in 1:dim(W)[1]){
-  Z1_test$WildLice[Z1_test$Area==12&Z1_test$Yr==W$return.year[i]]<-rep(W$mean[i], length(which(Z1_test$Area==12&Z1_test$Yr==W$return.year[i])))
+  cor_size_cor_lice$WildLice[cor_size_cor_lice$Area==12&cor_size_cor_lice$Yr==Wcole$return.year[i]]<-
+    rep(Wcole$mean[i], length(which(cor_size_cor_lice$Area==12&cor_size_cor_lice$Yr==Wcole$return.year[i])))
+}
+inc_size_cor_lice$WildLice<-rep(0,dim(inc_size_cor_lice)[1])
+for(i in 1:dim(W)[1]){
+  inc_size_cor_lice$WildLice[inc_size_cor_lice$Area==12&inc_size_cor_lice$Yr==Wcole$return.year[i]]<-
+    rep(Wcole$mean[i], length(which(inc_size_cor_lice$Area==12&inc_size_cor_lice$Yr==Wcole$return.year[i])))
 }
 
 ################################################################################
@@ -299,3 +325,9 @@ for(i in 1:dim(W)[1]){
 ################################################################################
 write.csv(Z1, "StockRecruitData_PINK.csv")
 write.csv(Z1_test, "stock_recruit_cole.csv")
+
+write.csv(cor_size_cor_lice, "cor_size_cor_lice.csv")
+write.csv(cor_size_inc_lice, "cor_size_inc_lice.csv")
+write.csv(inc_size_cor_lice, "inc_size_cor_lice.csv")
+write.csv(inc_size_inc_lice, "inc_size_inc_lice.csv")
+
